@@ -36,6 +36,7 @@
             color: var(--text);
             line-height: 1.65;
             overflow-x: hidden;
+            isolation: isolate;
         }
 
         /* ── Grain texture ── */
@@ -46,23 +47,34 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* Three.js — fixed full-viewport background layer */
+        /* Three.js — decorative background only; must never capture clicks */
         .arch-bg {
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            inset: 0;
             z-index: 0;
-            pointer-events: none;
-            filter: blur(4px);
+            pointer-events: none !important;
             opacity: 0.88;
-            transform: scale(1.04);
-            transform-origin: center center;
         }
 
-        #arch-canvas {
+        .arch-bg canvas {
             display: block;
-            width: 100%; height: 100%;
-            pointer-events: none;
+            width: 100%;
+            height: 100%;
+            pointer-events: none !important;
+            touch-action: none;
+        }
+
+        .site-main,
+        .navbar,
+        .footer,
+        .scroll-rail {
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        .site-main,
+        .footer {
+            position: relative;
         }
 
         /* Text panels — readability without covering the canvas */
@@ -85,6 +97,7 @@
             position: fixed; top: 0; left: 0; right: 0;
             height: var(--top-bar); z-index: 1100;
             background: rgba(212, 20, 20, 0.08);
+            pointer-events: none;
         }
 
         .progress-top__fill {
@@ -122,6 +135,12 @@
             border-right: 1px solid var(--border);
             background: rgba(8, 8, 8, 0.92);
             backdrop-filter: blur(12px);
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .scroll-rail a {
+            pointer-events: auto;
         }
 
         .scroll-rail__track {
@@ -204,7 +223,7 @@
             text-decoration: none;
             color: var(--muted);
             position: relative;
-            left: calc(var(--rail-w) / 2 - 1px);
+            transform: translateX(calc(var(--rail-w) / 2 - 50%));
         }
 
         .scroll-rail__dots .dot {
@@ -261,8 +280,6 @@
         /* ── Main layout offset for rail ── */
         .site-main {
             margin-left: var(--rail-w);
-            position: relative;
-            z-index: 2;
         }
 
         /* ── Navbar ── */
@@ -365,8 +382,7 @@
 
         .hero-content {
             position: relative; z-index: 2;
-            animation: hero-in 1s cubic-bezier(0.22, 1, 0.36, 1) 0.12s forwards;
-            opacity: 0;
+            animation: hero-in 1s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
             background: rgba(8, 8, 8, 0.72);
             backdrop-filter: blur(10px);
             padding: 2rem 2.25rem;
@@ -439,7 +455,13 @@
             border-radius: 2px;
             transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
             position: relative;
+            z-index: 1;
             overflow: hidden;
+            cursor: pointer;
+        }
+
+        a {
+            cursor: pointer;
         }
 
         .btn-primary {
@@ -883,14 +905,18 @@
                 transition-duration: 0.01ms !important;
             }
             html { scroll-behavior: auto; }
+            .hero-content,
+            .hero-photo,
+            .project-row,
+            .contact-grid,
+            .reveal-head {
+                opacity: 1 !important;
+                transform: none !important;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="arch-bg" aria-hidden="true">
-        <canvas id="arch-canvas"></canvas>
-    </div>
-
     <!-- Top scroll progress bar -->
     <div class="progress-top" aria-hidden="true">
         <div class="progress-top__fill" id="progress-top-fill"></div>
@@ -1122,7 +1148,22 @@
         </div>
     </footer>
 
+    <div class="arch-bg" aria-hidden="true" inert>
+        <canvas id="arch-canvas"></canvas>
+    </div>
+
     <script src="three.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/three@0.160.0/build/three.min.js'"></script>
+    <script>
+    (function () {
+        const archBg = document.querySelector('.arch-bg');
+        const canvas = document.getElementById('arch-canvas');
+        if (archBg) archBg.style.pointerEvents = 'none';
+        if (canvas) {
+            canvas.style.pointerEvents = 'none';
+            canvas.style.touchAction = 'none';
+        }
+    })();
+    </script>
     <script>
     (function () {
         const canvas = document.getElementById('arch-canvas');
@@ -1237,6 +1278,8 @@
         }
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setClearColor(0x080808, 1);
+        canvas.style.pointerEvents = 'none';
+        canvas.style.touchAction = 'none';
 
         const positions = new Float32Array(N * 3);
         const colors = new Float32Array(N * 3);
