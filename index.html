@@ -1,0 +1,1536 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AADITYA — AI/ML Engineer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --red: #d41414;
+            --red-hot: #ff2020;
+            --red-dim: #5c0a0a;
+            --red-glow: rgba(212, 20, 20, 0.5);
+            --black: #080808;
+            --surface: #101010;
+            --surface-2: #181818;
+            --border: rgba(212, 20, 20, 0.22);
+            --text: #ececec;
+            --muted: #6e6e6e;
+            --rail-w: 72px;
+            --top-bar: 3px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-timeline: --page-scroll block;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--black);
+            color: var(--text);
+            line-height: 1.65;
+            overflow-x: hidden;
+        }
+
+        /* ── Grain texture ── */
+        body::after {
+            content: '';
+            position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* Three.js — fixed full-viewport background layer */
+        .arch-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(4px);
+            opacity: 0.88;
+            transform: scale(1.04);
+            transform-origin: center center;
+        }
+
+        #arch-canvas {
+            display: block;
+            width: 100%; height: 100%;
+        }
+
+        /* Text panels — readability without covering the canvas */
+        .section-head,
+        .about-text,
+        .project-row > div {
+            background: rgba(8, 8, 8, 0.78);
+            backdrop-filter: blur(8px);
+        }
+
+        .section-head { padding: 1.25rem; margin-bottom: -1.25rem; }
+        .about-text { padding: 1.5rem; }
+        .project-row > div { padding: 0.5rem 1rem 0.5rem 0; }
+
+        /* ══════════════════════════════════════
+           SCROLL PROGRESS — top horizontal bar
+           Line fills the track as you scroll
+        ══════════════════════════════════════ */
+        .progress-top {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: var(--top-bar); z-index: 1100;
+            background: rgba(212, 20, 20, 0.08);
+        }
+
+        .progress-top__fill {
+            height: 100%; width: 100%;
+            background: linear-gradient(90deg, var(--red-dim), var(--red-hot));
+            transform-origin: left center;
+            transform: scaleX(0);
+            box-shadow: 0 0 12px var(--red-glow);
+        }
+
+        @supports (animation-timeline: scroll()) {
+            @keyframes grow-horizontal {
+                from { transform: scaleX(0); }
+                to   { transform: scaleX(1); }
+            }
+            .progress-top__fill {
+                animation: grow-horizontal linear both;
+                animation-timeline: --page-scroll;
+            }
+        }
+
+        /* ══════════════════════════════════════
+           SCROLL RAIL — left vertical bar
+           Imaginary track + red line fills down
+        ══════════════════════════════════════ */
+        .scroll-rail {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: var(--rail-w);
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: calc(var(--top-bar) + 1.5rem) 0 1.5rem;
+            border-right: 1px solid var(--border);
+            background: rgba(8, 8, 8, 0.92);
+            backdrop-filter: blur(12px);
+        }
+
+        .scroll-rail__track {
+            position: relative;
+            flex: 1;
+            width: 2px;
+            margin: 0.5rem 0;
+            background: rgba(212, 20, 20, 0.12);
+            border-radius: 2px;
+            overflow: visible;
+        }
+
+        /* The fill line inside the imaginary bar */
+        .scroll-rail__fill {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, var(--red-hot), var(--red));
+            border-radius: 2px;
+            transform-origin: top center;
+            transform: scaleY(0);
+            box-shadow: 0 0 10px var(--red-glow);
+        }
+
+        @supports (animation-timeline: scroll()) {
+            @keyframes grow-vertical {
+                from { transform: scaleY(0); }
+                to   { transform: scaleY(1); }
+            }
+            .scroll-rail__fill {
+                animation: grow-vertical linear both;
+                animation-timeline: --page-scroll;
+            }
+        }
+
+        /* Glowing head that rides the fill line */
+        .scroll-rail__head {
+            position: absolute;
+            left: 50%;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--red-hot);
+            transform: translate(-50%, -50%) scale(0);
+            box-shadow: 0 0 14px var(--red-hot), 0 0 28px var(--red-glow);
+            pointer-events: none;
+            opacity: 0;
+            transition: top 0.08s linear, opacity 0.3s;
+        }
+
+        .scroll-rail__head.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .scroll-rail__nav {
+            position: absolute;
+            inset: calc(var(--top-bar) + 1.5rem) 0 3rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .scroll-rail__dots {
+            list-style: none;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .scroll-rail__dots li {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .scroll-rail__dots a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--muted);
+            position: relative;
+            left: calc(var(--rail-w) / 2 - 1px);
+        }
+
+        .scroll-rail__dots .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            border: 2px solid rgba(212, 20, 20, 0.35);
+            background: var(--black);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        border-color 0.3s, background 0.3s, box-shadow 0.3s;
+            flex-shrink: 0;
+        }
+
+        .scroll-rail__dots a:hover .dot,
+        .scroll-rail__dots a.active .dot {
+            border-color: var(--red-hot);
+            background: var(--red);
+            box-shadow: 0 0 12px var(--red-glow);
+        }
+
+        .scroll-rail__dots a.active .dot {
+            transform: scale(1.35);
+        }
+
+        .scroll-rail__dots .label {
+            position: absolute;
+            left: 22px;
+            white-space: nowrap;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity 0.25s, transform 0.25s;
+            pointer-events: none;
+            color: var(--text);
+        }
+
+        .scroll-rail__dots a:hover .label,
+        .scroll-rail__dots a.active .label {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scroll-rail__percent {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--red);
+            opacity: 0.7;
+        }
+
+        /* ── Main layout offset for rail ── */
+        .site-main {
+            margin-left: var(--rail-w);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            position: fixed;
+            top: var(--top-bar);
+            left: var(--rail-w); right: 0;
+            z-index: 1000;
+            padding: 1rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(8, 8, 8, 0.7);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.4s, background 0.4s;
+        }
+
+        .navbar.scrolled {
+            border-bottom-color: var(--border);
+            background: rgba(8, 8, 8, 0.95);
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.25em;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo span { color: var(--red); }
+
+        .nav-status {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-status::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--red-hot);
+        }
+
+        /* ── Hero ── */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(260px, 380px) 1fr;
+            gap: 3.5rem;
+            align-items: center;
+            max-width: 1100px;
+            padding: 7rem 4rem 4rem 3rem;
+            position: relative;
+        }
+
+        .hero-photo {
+            position: relative;
+            z-index: 2;
+            animation: hero-in 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .hero-photo::before {
+            content: '';
+            position: absolute;
+            inset: -10px -10px 10px 10px;
+            border: 1px solid rgba(212, 20, 20, 0.45);
+            pointer-events: none;
+            transition: inset 0.4s ease;
+        }
+
+        .hero-photo:hover::before {
+            inset: -14px -14px 14px 14px;
+            border-color: var(--red);
+        }
+
+        .hero-photo img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            object-fit: cover;
+            object-position: center top;
+            border: 1px solid var(--border);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 32px rgba(212, 20, 20, 0.12);
+            filter: grayscale(10%) contrast(1.05);
+            transition: filter 0.4s ease;
+        }
+
+        .hero-photo:hover img {
+            filter: grayscale(0%) contrast(1.08);
+        }
+
+        .hero-content {
+            position: relative; z-index: 2;
+            animation: hero-in 1s cubic-bezier(0.22, 1, 0.36, 1) 0.12s forwards;
+            opacity: 0;
+            background: rgba(8, 8, 8, 0.72);
+            backdrop-filter: blur(10px);
+            padding: 2rem 2.25rem;
+            border: 1px solid var(--border);
+        }
+
+        @keyframes hero-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-eyebrow::before {
+            content: '';
+            width: 32px; height: 1px;
+            background: var(--red);
+        }
+
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(3.2rem, 7vw, 5.5rem);
+            font-weight: 800;
+            line-height: 0.95;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            color: var(--red-hot);
+            display: block;
+        }
+
+        .hero-sub {
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.02em;
+        }
+
+        .hero-desc {
+            max-width: 480px;
+            color: rgba(236, 236, 236, 0.65);
+            margin-bottom: 2rem;
+        }
+
+        .cta-row {
+            display: flex; gap: 1rem; flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.85rem 1.8rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 2px;
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: var(--text);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--red-hot);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--red-glow);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--red);
+            color: var(--red-hot);
+            transform: translateY(-2px);
+        }
+
+        /* ── Sections ── */
+        .section {
+            padding: 6rem 4rem 6rem 3rem;
+            max-width: 1100px;
+            position: relative;
+        }
+
+        .section-head {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1.5rem;
+            align-items: end;
+            margin-bottom: 3.5rem;
+        }
+
+        .section-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(212, 20, 20, 0.35);
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 0.4rem;
+        }
+
+        .section-sub {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        /* Section divider with fill-on-scroll mini bar */
+        .section-bar {
+            height: 2px;
+            background: rgba(212, 20, 20, 0.1);
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-bar__fill {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, var(--red), transparent);
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .section-head.in-view .section-bar__fill {
+            transform: scaleX(1);
+        }
+
+        /* ── About ── */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .about-text p {
+            margin-bottom: 1.25rem;
+            color: rgba(236, 236, 236, 0.8);
+        }
+
+        .highlight { color: var(--red-hot); font-weight: 600; }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            margin-top: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .stat {
+            background: var(--surface);
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat strong {
+            display: block;
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+            line-height: 1.25;
+            letter-spacing: 0.03em;
+            color: var(--red-hot);
+        }
+
+        .stat span {
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: block;
+            margin-top: 0.35rem;
+        }
+
+        /* ── Skills with fill bars ── */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .skill-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                        border-color 0.3s;
+        }
+
+        .skill-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .skill-card:hover { border-color: rgba(212, 20, 20, 0.5); }
+
+        .skill-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .skill-card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .skill-icon { font-size: 1.5rem; }
+
+        /* Imaginary horizontal bar that fills on scroll-into-view */
+        .skill-meter {
+            height: 3px;
+            background: rgba(212, 20, 20, 0.1);
+            margin-bottom: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-meter__fill {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, var(--red-dim), var(--red-hot));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .skill-card.visible .skill-meter__fill {
+            transform: scaleX(var(--meter, 0.85));
+        }
+
+        .skill-list { list-style: none; }
+
+        .skill-list li {
+            padding: 0.35rem 0;
+            font-size: 0.92rem;
+            color: rgba(236, 236, 236, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .skill-list li::before {
+            content: '—';
+            color: var(--red);
+            margin-right: 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        /* ── Projects ── */
+        .projects-list { display: flex; flex-direction: column; gap: 0; }
+
+        .project-row {
+            display: grid;
+            grid-template-columns: 48px 1fr;
+            gap: 2rem;
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border);
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .project-row.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .project-row:hover .project-index { color: var(--red-hot); }
+
+        .project-index {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--muted);
+            padding-top: 0.2rem;
+            transition: color 0.3s;
+        }
+
+        .project-row h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+            transition: color 0.3s;
+        }
+
+        .project-row h3 a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .project-row h3 a:hover { color: var(--red-hot); }
+
+        .project-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.85rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--red);
+            text-decoration: none;
+            transition: color 0.3s, gap 0.3s;
+        }
+
+        .project-link:hover {
+            color: var(--red-hot);
+            gap: 0.55rem;
+        }
+
+        .project-row:hover h3 { color: var(--red-hot); }
+
+        .project-row p {
+            color: var(--muted);
+            margin-bottom: 1rem;
+            max-width: 600px;
+        }
+
+        .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+        .tag {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.65rem;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            transition: border-color 0.3s, color 0.3s;
+        }
+
+        .project-row:hover .tag {
+            border-color: rgba(212, 20, 20, 0.4);
+            color: var(--text);
+        }
+
+        /* ── Contact ── */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s, transform 0.7s;
+        }
+
+        .contact-grid.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .contact-cell {
+            background: var(--surface);
+            padding: 2rem;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-cell::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 2px; width: 100%;
+            background: var(--red);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .contact-cell:hover {
+            background: var(--surface-2);
+        }
+
+        .contact-cell:hover::after {
+            transform: scaleX(1);
+        }
+
+        .contact-cell strong {
+            display: block;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-cell span { color: var(--muted); font-size: 0.95rem; }
+
+        /* ── Footer ── */
+        .footer {
+            padding: 2rem 4rem 2rem calc(var(--rail-w) + 3rem);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer p {
+            font-size: 0.8rem;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+        }
+
+        .footer-links { display: flex; gap: 1.5rem; }
+
+        .footer-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover { color: var(--red-hot); }
+
+        /* ── Mobile progress (bottom) ── */
+        .progress-mobile {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: rgba(212, 20, 20, 0.1);
+            z-index: 1100;
+        }
+
+        .progress-mobile__fill {
+            height: 100%;
+            background: var(--red);
+            transform-origin: left;
+            transform: scaleX(0);
+            box-shadow: 0 0 8px var(--red-glow);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            :root { --rail-w: 0px; }
+
+            .scroll-rail { display: none; }
+            .site-main { margin-left: 0; }
+            .navbar { left: 0; padding: 1rem 1.5rem; }
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 6rem 1.5rem 3rem;
+            }
+            .hero-photo {
+                max-width: 280px;
+                margin: 0 auto;
+            }
+            .section { padding: 4rem 1.5rem; }
+            .about-grid { grid-template-columns: 1fr; }
+            .stat-row { grid-template-columns: 1fr; }
+            .footer { padding: 2rem 1.5rem; justify-content: center; text-align: center; }
+            .progress-mobile { display: block; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="arch-bg" aria-hidden="true">
+        <canvas id="arch-canvas"></canvas>
+    </div>
+
+    <!-- Top scroll progress bar -->
+    <div class="progress-top" aria-hidden="true">
+        <div class="progress-top__fill" id="progress-top-fill"></div>
+    </div>
+
+    <!-- Left vertical scroll rail — line fills the track -->
+    <aside class="scroll-rail" aria-label="Scroll progress and navigation">
+        <nav class="scroll-rail__nav">
+            <div class="scroll-rail__track" aria-hidden="true">
+                <div class="scroll-rail__fill" id="progress-vertical-fill"></div>
+                <div class="scroll-rail__head" id="scroll-head"></div>
+            </div>
+            <ul class="scroll-rail__dots" id="rail-dots">
+                <li><a href="#home" data-section="home"><span class="dot"></span><span class="label">Home</span></a></li>
+                <li><a href="#about" data-section="about"><span class="dot"></span><span class="label">About</span></a></li>
+                <li><a href="#projects" data-section="projects"><span class="dot"></span><span class="label">Projects</span></a></li>
+                <li><a href="#contact" data-section="contact"><span class="dot"></span><span class="label">Contact</span></a></li>
+            </ul>
+        </nav>
+        <span class="scroll-rail__percent" id="scroll-percent">00%</span>
+    </aside>
+
+    <div class="progress-mobile" aria-hidden="true">
+        <div class="progress-mobile__fill" id="progress-mobile-fill"></div>
+    </div>
+
+    <header class="navbar" id="navbar">
+        <a href="#home" class="logo">AAD<span>ITYA</span></a>
+        <div class="nav-status">Available for work</div>
+    </header>
+
+    <main class="site-main">
+        <section class="hero" id="home" data-section>
+            <div class="hero-photo">
+                <img src="my_image.png" alt="Aaditya Aaryan">
+            </div>
+            <div class="hero-content">
+                <div class="hero-eyebrow">AI / ML Engineer</div>
+                <h1>AADITYA<em>AARYAN</em></h1>
+                <p class="hero-sub">AI/ML Engineer & Backend Developer</p>
+                <p class="hero-desc">
+                    Building production AI systems — LLMs, RAG, multi-agent workflows,
+                    and scalable backends.
+                </p>
+                <div class="cta-row">
+                    <a href="#projects" class="btn btn-primary">View Projects</a>
+                    <a href="#contact" class="btn btn-ghost">Get In Touch</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="about" data-section>
+            <div class="section-head reveal-head">
+                <span class="section-num">02</span>
+                <div>
+                    <h2 class="section-title">About Me</h2>
+                    <p class="section-sub">Passionate about intelligent solutions that make a difference</p>
+                    <div class="section-bar"><div class="section-bar__fill"></div></div>
+                </div>
+            </div>
+            <div class="about-grid">
+                <div class="about-text">
+                    <p>
+                        I'm an <span class="highlight">AI/ML Engineer</span> with a deep passion for building intelligent systems.
+                        My expertise spans Natural Language Processing, Computer Vision, and distributed backend systems.
+                    </p>
+                    <p>
+                        Currently focused on developing <span class="highlight">RAG systems</span>, real-time speech transcription pipelines,
+                        and advanced face recognition solutions.
+                    </p>
+                    <p>
+                        As an <span class="highlight">Open Source contributor</span> and MLOps enthusiast, I'm always exploring
+                        new technologies and sharing knowledge with the community.
+                    </p>
+                    <div class="stat-row">
+                        <div class="stat"><strong>Judge-Before-Gen</strong><span>Faithfulness-Gated Answers</span></div>
+                        <div class="stat"><strong>Vector × Graph</strong><span>Memgraph · FalkorDB Fusion</span></div>
+                        <div class="stat"><strong>Zero-Drift Tools</strong><span>Deterministic Agent Arithmetic</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="projects" data-section>
+            <div class="section-head reveal-head">
+                <span class="section-num">03</span>
+                <div>
+                    <h2 class="section-title">Featured Projects</h2>
+                    <p class="section-sub">Hardest builds from my GitHub — agentic AI, GraphRAG, voice, and production systems</p>
+                    <div class="section-bar"><div class="section-bar__fill"></div></div>
+                </div>
+            </div>
+            <div class="projects-list">
+                <article class="project-row" data-delay="0">
+                    <span class="project-index">01</span>
+                    <div>
+                        <h3><a href="https://github.com/Aadik1ng/Intel-Doc" target="_blank" rel="noopener">Intel-Doc</a></h3>
+                        <p>Agentic GraphRAG for enterprise document intelligence — LangGraph loops, hybrid vector + graph retrieval (Memgraph), judge-first grounding with &lt;5% hallucination target.</p>
+                        <div class="tags">
+                            <span class="tag">LangGraph</span><span class="tag">LlamaIndex</span>
+                            <span class="tag">Memgraph</span><span class="tag">FastAPI</span>
+                        </div>
+                        <a class="project-link" href="https://github.com/Aadik1ng/Intel-Doc" target="_blank" rel="noopener">GitHub →</a>
+                    </div>
+                </article>
+                <article class="project-row" data-delay="80">
+                    <span class="project-index">02</span>
+                    <div>
+                        <h3><a href="https://github.com/Aadik1ng/Clinical-intake-agent" target="_blank" rel="noopener">Clinical Intake Agent</a></h3>
+                        <p>Dual-mode healthcare intake — text chat and real-time voice via LiveKit, Whisper STT, OpenAI TTS, structured slot filling and red-flag detection.</p>
+                        <div class="tags">
+                            <span class="tag">LiveKit</span><span class="tag">Whisper</span>
+                            <span class="tag">FastAPI</span><span class="tag">Azure OpenAI</span>
+                        </div>
+                        <a class="project-link" href="https://github.com/Aadik1ng/Clinical-intake-agent" target="_blank" rel="noopener">GitHub →</a>
+                    </div>
+                </article>
+                <article class="project-row" data-delay="160">
+                    <span class="project-index">03</span>
+                    <div>
+                        <h3><a href="https://github.com/Aadik1ng/GraphRAG" target="_blank" rel="noopener">GraphRAG (Lease AI)</a></h3>
+                        <p>Multi-document legal analysis — FalkorDB + ChromaDB hybrid search, structured lease extraction, Q&A with page-level source citations.</p>
+                        <div class="tags">
+                            <span class="tag">Google ADK</span><span class="tag">FalkorDB</span>
+                            <span class="tag">ChromaDB</span><span class="tag">Docker</span>
+                        </div>
+                        <a class="project-link" href="https://github.com/Aadik1ng/GraphRAG" target="_blank" rel="noopener">GitHub →</a>
+                    </div>
+                </article>
+                <article class="project-row" data-delay="240">
+                    <span class="project-index">04</span>
+                    <div>
+                        <h3><a href="https://github.com/Aadik1ng/VoiceRAG" target="_blank" rel="noopener">VoiceRAG</a></h3>
+                        <p>Voice-driven RAG pipeline — spoken queries over document collections with streaming retrieval and generative answers.</p>
+                        <div class="tags">
+                            <span class="tag">RAG</span><span class="tag">Speech</span>
+                            <span class="tag">Python</span><span class="tag">LLM</span>
+                        </div>
+                        <a class="project-link" href="https://github.com/Aadik1ng/VoiceRAG" target="_blank" rel="noopener">GitHub →</a>
+                    </div>
+                </article>
+                <article class="project-row" data-delay="320">
+                    <span class="project-index">05</span>
+                    <div>
+                        <h3><a href="https://github.com/Aadik1ng/Mortgage_Advisor_ADK" target="_blank" rel="noopener">Ramy — Mortgage Advisor ADK</a></h3>
+                        <p>UAE mortgage advisor agent — Google ADK, deterministic financial tools (EMI, DBR, buy-vs-rent), Groq streaming, zero hallucination on numbers.</p>
+                        <div class="tags">
+                            <span class="tag">Google ADK</span><span class="tag">Groq</span>
+                            <span class="tag">SSE</span><span class="tag">Cloud Run</span>
+                        </div>
+                        <a class="project-link" href="https://github.com/Aadik1ng/Mortgage_Advisor_ADK" target="_blank" rel="noopener">GitHub →</a>
+                    </div>
+                </article>
+                <article class="project-row" data-delay="400">
+                    <span class="project-index">06</span>
+                    <div>
+                        <h3><a href="https://github.com/Aadik1ng/Financial_Deep_Research" target="_blank" rel="noopener">Financial Deep Research</a></h3>
+                        <p>Autonomous financial research agent — multi-step web retrieval, synthesis, and structured reporting for market and investment analysis.</p>
+                        <div class="tags">
+                            <span class="tag">Agents</span><span class="tag">Research</span>
+                            <span class="tag">Finance</span><span class="tag">Python</span>
+                        </div>
+                        <a class="project-link" href="https://github.com/Aadik1ng/Financial_Deep_Research" target="_blank" rel="noopener">GitHub →</a>
+                    </div>
+                </article>
+                <article class="project-row" data-delay="480">
+                    <span class="project-index">07</span>
+                    <div>
+                        <h3><a href="https://github.com/Aadik1ng/Remote-Photoplethysmography" target="_blank" rel="noopener">Remote Photoplethysmography</a></h3>
+                        <p>Camera-based vital sign estimation — extracts heart rate from facial video using computer vision and temporal signal processing.</p>
+                        <div class="tags">
+                            <span class="tag">OpenCV</span><span class="tag">Signal Processing</span>
+                            <span class="tag">PyTorch</span><span class="tag">CV</span>
+                        </div>
+                        <a class="project-link" href="https://github.com/Aadik1ng/Remote-Photoplethysmography" target="_blank" rel="noopener">GitHub →</a>
+                    </div>
+                </article>
+                <article class="project-row" data-delay="560">
+                    <span class="project-index">08</span>
+                    <div>
+                        <h3><a href="https://github.com/Aadik1ng/Context-Aware-Retrieval-Engine" target="_blank" rel="noopener">Context-Aware Retrieval Engine</a></h3>
+                        <p>Advanced retrieval system with context-aware ranking — hybrid search, query rewriting, and relevance scoring for domain-specific Q&A.</p>
+                        <div class="tags">
+                            <span class="tag">RAG</span><span class="tag">Embeddings</span>
+                            <span class="tag">Vector DB</span><span class="tag">FastAPI</span>
+                        </div>
+                        <a class="project-link" href="https://github.com/Aadik1ng/Context-Aware-Retrieval-Engine" target="_blank" rel="noopener">GitHub →</a>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="section" id="contact" data-section>
+            <div class="section-head reveal-head">
+                <span class="section-num">04</span>
+                <div>
+                    <h2 class="section-title">Get In Touch</h2>
+                    <p class="section-sub">Let's collaborate on your next AI/ML project</p>
+                    <div class="section-bar"><div class="section-bar__fill"></div></div>
+                </div>
+            </div>
+            <div class="contact-grid">
+                <a class="contact-cell" href="https://www.linkedin.com/in/aaditya-a-b95254214" target="_blank" rel="noopener">
+                    <strong>LinkedIn</strong>
+                    <span>aadik1ng</span>
+                </a>
+                <a class="contact-cell" href="https://github.com/aadik1ng" target="_blank" rel="noopener">
+                    <strong>GitHub</strong>
+                    <span>aadik1ng</span>
+                </a>
+                <a class="contact-cell" href="https://www.leetcode.com/aadik1ng" target="_blank" rel="noopener">
+                    <strong>LeetCode</strong>
+                    <span>aadik1ng</span>
+                </a>
+                <a class="contact-cell" href="mailto:aadityaaryan639@gmail.com">
+                    <strong>Email</strong>
+                    <span>aadityaaryan639@gmail.com</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Aaditya Aaryan — Building the future with AI</p>
+        <div class="footer-links">
+            <a href="https://github.com/aadik1ng" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/in/aaditya-a-b95254214" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="mailto:aadityaaryan639@gmail.com">Email</a>
+        </div>
+    </footer>
+
+    <script src="three.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/three@0.160.0/build/three.min.js'"></script>
+    <script>
+    (function () {
+        const canvas = document.getElementById('arch-canvas');
+        if (!canvas || !window.THREE) {
+            console.warn('Three.js background unavailable');
+            return;
+        }
+        const THREE = window.THREE;
+        const N = 320;
+        let diffusionT = 0;
+        let ganPhase = 0;
+        let scrollProgress = 0;
+        let smoothScroll = 0;
+
+        const noisePos = new Float32Array(N * 3);
+        const structuredPos = new Float32Array(N * 3);
+        const targetsA = new Float32Array(N * 3);
+        const targetsB = new Float32Array(N * 3);
+        const currentPos = new Float32Array(N * 3);
+
+        for (let i = 0; i < N; i++) {
+            const i3 = i * 3;
+            noisePos[i3]     = (Math.random() - 0.5) * 7;
+            noisePos[i3 + 1] = (Math.random() - 0.5) * 7;
+            noisePos[i3 + 2] = (Math.random() - 0.5) * 5;
+            const phi = Math.acos(1 - 2 * (i + 0.5) / N);
+            const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+            const r = 2.2;
+            structuredPos[i3]     = r * Math.sin(phi) * Math.cos(theta);
+            structuredPos[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            structuredPos[i3 + 2] = r * Math.cos(phi);
+            currentPos[i3] = noisePos[i3];
+            currentPos[i3 + 1] = noisePos[i3 + 1];
+            currentPos[i3 + 2] = noisePos[i3 + 2];
+        }
+
+        function getScrollProgress() {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            return h > 0 ? Math.min(window.scrollY / h, 1) : 0;
+        }
+
+        function modeWeight(mode, modeFloat) {
+            return Math.max(0, 1 - Math.abs(modeFloat - mode));
+        }
+
+        function computeTargets(mode, time, out) {
+            for (let i = 0; i < N; i++) {
+                const i3 = i * 3;
+                let x, y, z;
+
+                if (mode === 0) {
+                    const layer = Math.floor(i / 64) % 4;
+                    const ti = i % 64;
+                    const col = ti % 8;
+                    const row = Math.floor(ti / 8);
+                    x = (col - 3.5) * 0.38;
+                    y = 1.35 - layer * 0.85;
+                    z = (row - 3.5) * 0.38;
+                    const pulse = Math.sin(time * 0.8 + i * 0.08) * 0.03;
+                    x += pulse; z += pulse;
+                } else if (mode === 1) {
+                    const t = diffusionT;
+                    const ease = t * t * (3 - 2 * t);
+                    x = noisePos[i3] * (1 - ease) + structuredPos[i3] * ease;
+                    y = noisePos[i3 + 1] * (1 - ease) + structuredPos[i3 + 1] * ease;
+                    z = noisePos[i3 + 2] * (1 - ease) + structuredPos[i3 + 2] * ease;
+                    out[i3] = x; out[i3 + 1] = y; out[i3 + 2] = z;
+                    continue;
+                } else if (mode === 2) {
+                    const isGen = i < N / 2;
+                    const idx = isGen ? i : i - N / 2;
+                    if (isGen) {
+                        x = -1.8 - Math.abs(Math.sin(idx * 0.15 + ganPhase)) * 0.8;
+                        y = Math.sin(idx * 0.12 + ganPhase * 1.3) * 1.8;
+                        z = Math.cos(idx * 0.1 + ganPhase) * 1.4;
+                    } else {
+                        x = 1.6 + (idx % 8) * 0.08;
+                        y = (Math.floor(idx / 8) % 8 - 3.5) * 0.42;
+                        z = (Math.floor(idx / 64) - 1) * 0.5;
+                    }
+                } else {
+                    const t = (i / N) * 2 - 1;
+                    y = t * 2.8;
+                    const bottleneck = Math.max(0.25, Math.abs(t) * 1.1);
+                    const angle = i * 2.399963;
+                    x = Math.cos(angle) * bottleneck;
+                    z = Math.sin(angle) * bottleneck;
+                }
+
+                out[i3] = x;
+                out[i3 + 1] = y;
+                out[i3 + 2] = z;
+            }
+        }
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x080808, 0.015);
+
+        const world = new THREE.Group();
+        world.position.set(0, 0, 0);
+        scene.add(world);
+
+        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 50);
+        camera.position.set(0, 0, 6);
+
+        let renderer;
+        try {
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+        } catch (e) {
+            console.warn('WebGL init failed', e);
+            return;
+        }
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x080808, 1);
+
+        const positions = new Float32Array(N * 3);
+        const colors = new Float32Array(N * 3);
+        for (let i = 0; i < N; i++) {
+            colors[i * 3] = 1; colors[i * 3 + 1] = 0.15; colors[i * 3 + 2] = 0.15;
+        }
+        positions.set(currentPos);
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const points = new THREE.Points(geo, new THREE.PointsMaterial({
+            size: 0.14,
+            vertexColors: true,
+            transparent: false,
+            blending: THREE.NormalBlending,
+            depthWrite: true,
+            sizeAttenuation: true,
+        }));
+        world.add(points);
+
+        const MAX_LINES = 180;
+        const linePositions = new Float32Array(MAX_LINES * 6);
+        const lineGeo = new THREE.BufferGeometry();
+        lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+        const attentionLines = new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({
+            color: 0xff2020,
+            transparent: true,
+            opacity: 0.35,
+        }));
+        world.add(attentionLines);
+
+        const layerGroup = new THREE.Group();
+        for (let l = 0; l < 4; l++) {
+            const box = new THREE.LineSegments(
+                new THREE.EdgesGeometry(new THREE.BoxGeometry(3.4, 0.08, 3.4)),
+                new THREE.LineBasicMaterial({ color: 0xff2020, transparent: true, opacity: 0.35 })
+            );
+            box.position.y = 1.35 - l * 0.85;
+            layerGroup.add(box);
+        }
+        world.add(layerGroup);
+
+        const latentSphere = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.55, 1)),
+            new THREE.LineBasicMaterial({ color: 0xff4040, transparent: true, opacity: 0.7 })
+        );
+        world.add(latentSphere);
+
+        const discPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(5, 5),
+            new THREE.MeshBasicMaterial({ color: 0xff2020, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+        );
+        discPlane.rotation.y = Math.PI / 2;
+        world.add(discPlane);
+
+        function resize() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            renderer.setSize(w, h, false);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+        }
+
+        function updateAttentionLines(time, weight) {
+            let li = 0;
+            const pos = geo.attributes.position.array;
+            for (let layer = 0; layer < 4 && li < MAX_LINES; layer++) {
+                for (let a = 0; a < 8 && li < MAX_LINES; a++) {
+                    const iA = (layer * 64 + a * 9) % N;
+                    const iB = (layer * 64 + a * 9 + 5) % N;
+                    const w = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * 1.5 + a + layer));
+                    if (w < 0.45) continue;
+                    const base = li * 6;
+                    linePositions[base]     = pos[iA * 3];
+                    linePositions[base + 1] = pos[iA * 3 + 1];
+                    linePositions[base + 2] = pos[iA * 3 + 2];
+                    linePositions[base + 3] = pos[iB * 3];
+                    linePositions[base + 4] = pos[iB * 3 + 1];
+                    linePositions[base + 5] = pos[iB * 3 + 2];
+                    li++;
+                }
+            }
+            lineGeo.setDrawRange(0, li * 2);
+            lineGeo.attributes.position.needsUpdate = true;
+            attentionLines.material.opacity = 0.25 * weight;
+        }
+
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let rafId;
+
+        window.addEventListener('scroll', () => { scrollProgress = getScrollProgress(); }, { passive: true });
+        scrollProgress = getScrollProgress();
+
+        function animate(now) {
+            rafId = requestAnimationFrame(animate);
+            const time = now * 0.001;
+            const dt = 0.016;
+
+            smoothScroll += (scrollProgress - smoothScroll) * 0.04;
+            const modeFloat = smoothScroll * 3;
+            const modeA = Math.min(3, Math.floor(modeFloat));
+            const modeB = Math.min(3, modeA + 1);
+            const localBlend = modeFloat - modeA;
+
+            if (!reducedMotion) {
+                diffusionT = (Math.sin(time * 0.25) + 1) / 2;
+                ganPhase += dt * 0.5;
+            }
+
+            computeTargets(modeA, time, targetsA);
+            computeTargets(modeB, time, targetsB);
+
+            const wT = modeWeight(0, modeFloat);
+            const wD = modeWeight(1, modeFloat);
+            const wG = modeWeight(2, modeFloat);
+            const wV = modeWeight(3, modeFloat);
+
+            for (let i = 0; i < N * 3; i++) {
+                const goal = targetsA[i] * (1 - localBlend) + targetsB[i] * localBlend;
+                currentPos[i] += (goal - currentPos[i]) * 0.05;
+                positions[i] = currentPos[i];
+            }
+            geo.attributes.position.needsUpdate = true;
+
+            layerGroup.visible = wT > 0.05;
+            layerGroup.children.forEach(c => { c.material.opacity = 0.4 * wT; });
+            attentionLines.visible = wT > 0.08;
+            latentSphere.visible = wV > 0.05;
+            latentSphere.material.opacity = 0.65 * wV;
+            discPlane.visible = wG > 0.05;
+            discPlane.material.opacity = 0.14 * wG;
+
+            if (wT > 0.08) updateAttentionLines(time, wT);
+
+            for (let i = 0; i < N; i++) {
+                const i3 = i * 3;
+                colors[i3]     = 1;
+                colors[i3 + 1] = 0.12;
+                colors[i3 + 2] = 0.12;
+                if (wD > 0.15) {
+                    const b = 0.5 + diffusionT * 0.5;
+                    colors[i3] *= b; colors[i3 + 1] *= b; colors[i3 + 2] *= b;
+                }
+                if (wG > 0.15 && i < N / 2) {
+                    colors[i3 + 1] = 0.35;
+                    colors[i3 + 2] = 0.1;
+                }
+            }
+            geo.attributes.color.needsUpdate = true;
+
+            if (!reducedMotion) {
+                latentSphere.rotation.y += 0.004;
+                latentSphere.rotation.x = Math.sin(time * 0.4) * 0.12;
+                camera.position.x = Math.sin(time * 0.12) * 0.3;
+                camera.position.y = Math.sin(time * 0.08) * 0.15;
+                camera.lookAt(0, 0, 0);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+
+        computeTargets(0, 0, targetsB);
+        for (let i = 0; i < N * 3; i++) currentPos[i] = targetsB[i];
+        positions.set(currentPos);
+        geo.attributes.position.needsUpdate = true;
+        geo.attributes.color.needsUpdate = true;
+        renderer.render(scene, camera);
+
+        if (reducedMotion) {
+            computeTargets(0, 0, targetsB);
+            positions.set(targetsB);
+            geo.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
+        } else {
+            animate(performance.now());
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) cancelAnimationFrame(rafId);
+            else if (!reducedMotion) animate(performance.now());
+        });
+    })();
+    </script>
+    <script>
+        const topFill = document.getElementById('progress-top-fill');
+        const vertFill = document.getElementById('progress-vertical-fill');
+        const mobileFill = document.getElementById('progress-mobile-fill');
+        const scrollHead = document.getElementById('scroll-head');
+        const scrollPercent = document.getElementById('scroll-percent');
+        const navbar = document.getElementById('navbar');
+        const railTrack = document.querySelector('.scroll-rail__track');
+        const useNativeScroll = CSS.supports('animation-timeline', 'scroll()');
+
+        function getScrollProgress() {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            return h > 0 ? Math.min(window.scrollY / h, 1) : 0;
+        }
+
+        function updateScrollUI() {
+            const p = getScrollProgress();
+
+            if (!useNativeScroll) {
+                const sx = `scaleX(${p})`;
+                const sy = `scaleY(${p})`;
+                topFill.style.transform = sx;
+                vertFill.style.transform = sy;
+                mobileFill.style.transform = sx;
+            }
+
+            // Glowing head rides the vertical fill line
+            if (railTrack) {
+                const trackH = railTrack.offsetHeight;
+                scrollHead.style.top = `${p * trackH}px`;
+                scrollHead.classList.toggle('visible', p > 0.01);
+            }
+
+            scrollPercent.textContent = String(Math.round(p * 100)).padStart(2, '0') + '%';
+            navbar.classList.toggle('scrolled', window.scrollY > 60);
+        }
+
+        window.addEventListener('scroll', updateScrollUI, { passive: true });
+        updateScrollUI();
+
+        // ── Position rail dots at actual section heights ──
+        function positionRailDots() {
+            const nav = document.querySelector('.scroll-rail__nav');
+            if (!nav || window.innerWidth <= 900) return;
+
+            const navRect = nav.getBoundingClientRect();
+            const items = document.querySelectorAll('#rail-dots li');
+
+            items.forEach(li => {
+                const id = li.querySelector('a').getAttribute('href').slice(1);
+                const section = document.getElementById(id);
+                if (!section) return;
+
+                const sectionMid = section.offsetTop + section.offsetHeight / 2;
+                const pageMid = document.body.scrollHeight;
+                const ratio = sectionMid / pageMid;
+                const top = ratio * navRect.height;
+                li.style.top = `${top}px`;
+            });
+        }
+
+        positionRailDots();
+        window.addEventListener('resize', positionRailDots);
+
+        // ── Active section highlighting on rail ──
+        const sections = document.querySelectorAll('[data-section]');
+        const railLinks = document.querySelectorAll('#rail-dots a');
+
+        const sectionObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const id = entry.target.id;
+                railLinks.forEach(a => {
+                    a.classList.toggle('active', a.dataset.section === id);
+                });
+            });
+        }, { threshold: 0.35, rootMargin: '-20% 0px -55% 0px' });
+
+        sections.forEach(s => sectionObserver.observe(s));
+
+        // ── Reveal animations ──
+        const revealObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const el = entry.target;
+                const delay = parseInt(el.dataset.delay || 0, 10);
+
+                if (el.classList.contains('reveal-head')) {
+                    el.classList.add('in-view');
+                } else {
+                    setTimeout(() => el.classList.add('visible'), delay);
+                }
+                revealObserver.unobserve(el);
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.reveal-head, .project-row, .contact-grid')
+            .forEach(el => revealObserver.observe(el));
+
+        // ── Smooth anchor scroll ──
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                const target = document.querySelector(a.getAttribute('href'));
+                if (!target) return;
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>
