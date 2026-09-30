@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Larper Uploader</title>
+<style>
+  :root { --ink: #16181d; --dim: #5b606b; --line: #e3e5ea; --bg: #fafaf8; --yt: #ff0033; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 17px/1.6 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background: var(--bg); }
+  main { max-width: 760px; margin: 0 auto; padding: 56px 24px 72px; }
+  h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--dim); margin: 0 0 36px; }
+  .badge { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--line); background: #fff;
+           border-radius: 999px; padding: 8px 16px 8px 10px; font-weight: 600; margin-bottom: 28px; }
+  .badge svg { width: 30px; height: 21px; }
+  h2 { font-size: 1.15rem; margin: 32px 0 8px; }
+  ul { padding-left: 20px; }
+  a { color: #1a56c9; }
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 0.95rem; }
+  footer a { margin-right: 18px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Daily Larper Uploader</h1>
+  <p class="sub">A personal publishing tool by Aaditya Aaryan.</p>
+
+  <div class="badge">
+    <svg viewBox="0 0 30 21" aria-hidden="true"><rect width="30" height="21" rx="5" fill="#ff0033"/><path d="M12 6l8 4.5-8 4.5z" fill="#fff"/></svg>
+    Uses YouTube API Services
+  </div>
+
+  <h2>What it does</h2>
+  <p>I make short explainer videos about AI engineering: agents, retrieval, voice AI and LLM performance.
+     This tool runs on my own computer and uploads those finished videos to my own YouTube channel,
+     <a href="https://www.youtube.com/@daily_larper">@daily_larper</a>, as Shorts, so I don't have to upload each one by hand.</p>
+
+  <h2>What it accesses</h2>
+  <ul>
+    <li>Uploads my own videos to my own channel (YouTube Data API <code>videos.insert</code>).</li>
+    <li>Reads my own channel's basic details and my uploads' processing status (<code>channels.list</code>, <code>videos.list</code>).</li>
+    <li>Nothing else. It has no other users, is not offered to anyone, and never accesses any other person's data.</li>
+  </ul>
+
+  <h2>Your data</h2>
+  <p>The only credential it stores is the OAuth token for my own Google account, kept on my own computer.
+     Access can be revoked at any time from <a href="https://myaccount.google.com/permissions">Google account permissions</a>.</p>
+
+  <footer>
+    <a href="https://gist.github.com/Aadik1ng/b04a61058cdd2fa7b99e1f8e11b3aa18">Privacy Policy</a>
+    <a href="https://gist.github.com/Aadik1ng/b04a61058cdd2fa7b99e1f8e11b3aa18#file-terms-of-service-md">Terms of Service</a>
+    <a href="https://www.youtube.com/t/terms">YouTube Terms of Service</a>
+    <a href="https://policies.google.com/privacy">Google Privacy Policy</a>
+    <p>Contact: aadityaaryan639@gmail.com</p>
+  </footer>
+</main>
+</body>
+</html>
