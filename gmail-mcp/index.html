@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gmail Assistant Bridge</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 16px/1.6 -apple-system, system-ui, sans-serif; max-width: 680px;
+         margin: 0 auto; padding: 48px 20px; color: #1d2126; background: #fbfaf7; }
+  @media (prefers-color-scheme: dark) { body { color: #e8e6e0; background: #15171c; } a { color: #7db0ff; } }
+  h1 { font-size: 1.7rem; margin-bottom: .2em; }
+  .sub { color: #6b6b6b; margin-top: 0; }
+  code { background: rgba(127,127,127,.15); padding: 1px 5px; border-radius: 4px; }
+  footer { margin-top: 40px; font-size: .9rem; color: #6b6b6b; }
+</style>
+</head>
+<body>
+<h1>Gmail Assistant Bridge</h1>
+<p class="sub">A personal tool by Aaditya Aaryan — not a public service.</p>
+
+<p><strong>What it is.</strong> Gmail Assistant Bridge is a self-hosted
+connector that lets the developer's own AI coding assistant read, search,
+organize, draft and send email in <em>the developer's own Gmail account</em>,
+on the developer's own computer. It is a single-user tool. It has no sign-up,
+no other users, and no shared backend.</p>
+
+<p><strong>What it does.</strong> On request from the developer, it can list and
+read messages, search the mailbox, apply labels and filters, create drafts, and
+send mail — each action initiated by the developer through their assistant.</p>
+
+<p><strong>How it connects.</strong> It talks to Gmail through Google's official
+API over OAuth, using the scopes <code>gmail.modify</code> and
+<code>gmail.settings.basic</code>. The OAuth token is stored only on the
+developer's machine.</p>
+
+<p>See the <a href="privacy.html">privacy policy and terms</a>.</p>
+
+<footer>Contact: aadityaaryan639@gmail.com</footer>
+</body>
+</html>
